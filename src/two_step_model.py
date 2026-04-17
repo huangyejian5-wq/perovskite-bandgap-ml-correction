@@ -72,8 +72,8 @@ def compare_models():
     try:
         import xgboost as xgb
         models['XGBoost'] = (
-            xgb.XGBClassifier(n_estimators=150, max_depth=5, learning_rate=0.05, random_state=42, eval_metric='logloss'),
-            xgb.XGBRegressor(n_estimators=200, max_depth=6, learning_rate=0.03, subsample=0.8, colsample_bytree=0.8, random_state=42),
+            xgb.XGBClassifier(n_estimators=400, max_depth=5, learning_rate=0.01, random_state=42, eval_metric='logloss'),
+            xgb.XGBRegressor(n_estimators=400, max_depth=5, learning_rate=0.01, subsample=0.8, colsample_bytree=0.8, random_state=42),
         )
     except Exception:
         pass
@@ -125,7 +125,7 @@ def ablation():
     drop_cols = ['Formula', 'E_g_Exp', 'Source', 'Priority', 'pretty_formula', 'Delta_E_g', 'is_metal_exp', 'target_delta']
 
     def run(use_two_step, use_nlp, use_features, use_bounds):
-        data = df.copy() if use_nlp else df.sample(n=201, random_state=42)
+        data = df.copy() if use_nlp else df.sample(n=210, random_state=42)
         X, cols = build_feature_matrix(data, drop_cols)
         if not use_features and 'gap_vol_ratio' in cols:
             X = X.drop(columns=['gap_vol_ratio'])
@@ -136,7 +136,7 @@ def ablation():
         pred = np.zeros(len(X))
 
         if not use_two_step:
-            reg = ExtraTreesRegressor(n_estimators=100, random_state=42)
+            reg = ExtraTreesRegressor(n_estimators=800, max_depth=20, random_state=42)
             for train_idx, test_idx in cv.split(X):
                 reg.fit(X.iloc[train_idx], y[train_idx])
                 fold = reg.predict(X.iloc[test_idx])
@@ -148,7 +148,7 @@ def ablation():
             y_train_cls = y_cls[train_idx]
             y_train_reg = y[train_idx]
 
-            clf = ExtraTreesClassifier(n_estimators=300, max_depth=15, random_state=42)
+            clf = ExtraTreesClassifier(n_estimators=800, max_depth=20, random_state=42)
             if use_features:
                 smote = SMOTE(random_state=42)
                 try:
@@ -164,8 +164,7 @@ def ablation():
             if mask_train_nm.sum() > 0:
                 if use_features:
                     reg = ExtraTreesRegressor(
-                        n_estimators=500,
-                        max_features=0.5,
+                        n_estimators=800,
                         max_depth=20,
                         random_state=42,
                     )
@@ -185,10 +184,10 @@ def ablation():
         return mean_absolute_error(y, pred), r2_score(y, pred)
 
     steps = [
-        ('Single-step baseline (N=201)', dict(use_two_step=False, use_nlp=False, use_features=False, use_bounds=False)),
-        ('+ Two-step workflow (N=201)', dict(use_two_step=True, use_nlp=False, use_features=False, use_bounds=False)),
-        ('+ NLP augmentation (N=257)', dict(use_two_step=True, use_nlp=True, use_features=False, use_bounds=False)),
-        ('+ Feature engineering + bounds (N=257)', dict(use_two_step=True, use_nlp=True, use_features=True, use_bounds=True)),
+        ('Single-step baseline (N=210)', dict(use_two_step=False, use_nlp=False, use_features=False, use_bounds=False)),
+        ('+ Two-step workflow (N=210)', dict(use_two_step=True, use_nlp=False, use_features=False, use_bounds=False)),
+        ('+ NLP augmentation (N=267)', dict(use_two_step=True, use_nlp=True, use_features=False, use_bounds=False)),
+        ('+ Feature engineering + bounds (N=267)', dict(use_two_step=True, use_nlp=True, use_features=True, use_bounds=True)),
     ]
 
     for label, cfg in steps:
@@ -268,19 +267,19 @@ def megnet_compare():
     for train_idx, test_idx in cv.split(X_magpie):
         y_train, y_test = y[train_idx], y[test_idx]
 
-        et1 = ExtraTreesRegressor(n_estimators=300, max_depth=15, max_features='sqrt', random_state=42)
+        et1 = ExtraTreesRegressor(n_estimators=300, max_depth=15, random_state=42)
         et1.fit(X_magpie[train_idx], y_train)
         p1 = et1.predict(X_magpie[test_idx])
         mae_o.append(mean_absolute_error(y_test, p1))
         r2_o.append(r2_score(y_test, p1))
 
-        et2 = ExtraTreesRegressor(n_estimators=300, max_depth=15, max_features='sqrt', random_state=42)
+        et2 = ExtraTreesRegressor(n_estimators=300, max_depth=15, random_state=42)
         et2.fit(X_megnet[train_idx], y_train)
         p2 = et2.predict(X_megnet[test_idx])
         mae_m.append(mean_absolute_error(y_test, p2))
         r2_m.append(r2_score(y_test, p2))
 
-        et3 = ExtraTreesRegressor(n_estimators=300, max_depth=15, max_features='sqrt', random_state=42)
+        et3 = ExtraTreesRegressor(n_estimators=300, max_depth=15, random_state=42)
         et3.fit(X_combined[train_idx], y_train)
         p3 = et3.predict(X_combined[test_idx])
         mae_c.append(mean_absolute_error(y_test, p3))

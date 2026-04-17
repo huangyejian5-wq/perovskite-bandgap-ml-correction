@@ -1,8 +1,11 @@
-# Model artifacts
+# Model Artifacts
 
-This directory is reserved for saving trained model objects and related metadata.
+This directory is reserved for trained model objects and model metadata.
 
-Suggested format:
+The public repository does not include binary model checkpoints. Models are intended to be regenerated from the released data and scripts.
 
-- `results/models/*.joblib` for scikit-learn models
-- `results/models/*.json` for configuration and metrics
+See `MODEL_INDEX.md` for:
+
+- the main model roles
+- the scripts used to reproduce them
+- the public-release policy for this directory

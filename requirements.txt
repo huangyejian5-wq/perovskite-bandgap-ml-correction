@@ -4,5 +4,4 @@ scikit-learn
 imbalanced-learn
 xgboost
 lightgbm
-requests
 mp-api

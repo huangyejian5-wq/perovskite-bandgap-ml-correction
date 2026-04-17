@@ -1,12 +1,8 @@
-import argparse
 import re
-import time
 from pathlib import Path
-from urllib.parse import quote
 
 import numpy as np
 import pandas as pd
-import requests
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT_DIR / 'data'
@@ -60,58 +56,7 @@ def rebuild_abstract(abstract_inverted):
         for pos in positions:
             words.append((pos, word))
     words.sort()
-    return ' '.join(word for pos, word in words)
-
-
-def crawl_openalex(num_formulas=10, max_results_per_formula=3, delay=0.5):
-    formulas = get_unlabeled_formulas()[: int(num_formulas)]
-    if not formulas:
-        print('No formulas to process. Exiting.')
-        return
-
-    base_url = 'https://api.openalex.org/works'
-    results = []
-
-    print(f'Starting crawler for {len(formulas)} formulas...')
-    for i, formula in enumerate(formulas, start=1):
-        print(f'[{i}/{len(formulas)}] Searching for {formula}...')
-        query = quote(f'"{formula}" AND ("bandgap" OR "band gap" OR "Eg" OR "experimental")')
-        url = f'{base_url}?search={query}&per-page={max_results_per_formula}&sort=relevance_score:desc'
-
-        try:
-            response = requests.get(url, timeout=10)
-            response.raise_for_status()
-            works = response.json().get('results', [])
-        except Exception as exc:
-            print(f'  -> Request failed for {formula}: {exc}')
-            time.sleep(delay)
-            continue
-
-        for paper in works:
-            title = paper.get('title', '')
-            abstract = rebuild_abstract(paper.get('abstract_inverted_index', {}))
-            values = extract_bandgap_from_text(f'{title} {abstract}')
-            if not values:
-                continue
-            results.append(
-                {
-                    'Formula': formula,
-                    'Extracted_Eg_eV': ', '.join(values),
-                    'Title': title,
-                    'Year': paper.get('publication_year', ''),
-                    'DOI': paper.get('doi', ''),
-                    'Abstract_Snippet': abstract[:500] + '...' if len(abstract) > 500 else abstract,
-                }
-            )
-
-        time.sleep(delay)
-
-    if results:
-        out = DATA_DIR / 'new_extracted_bandgaps.csv'
-        pd.DataFrame(results).to_csv(out, index=False)
-        print(f'Data saved to {out.name}')
-    else:
-        print('No bandgap data found for the selected formulas.')
+    return ' '.join(word for _, word in words)
 
 
 def extract_first_float(value):
@@ -139,7 +84,7 @@ def merge_bandgaps():
         {
             'Formula': df_new['Formula'],
             'E_g_Exp': df_new['E_g_Exp'],
-            'Source': 'OpenAlex_Crawler',
+            'Source': 'external_record_merge',
             'Priority': 2,
         }
     )
@@ -149,20 +94,3 @@ def merge_bandgaps():
     df_merged = df_merged.sort_values('Priority').drop_duplicates(subset=['Formula'], keep='first')
     df_merged.to_csv(df_gt_path, index=False)
     print('Saved merged dataset to data/ultimate_experimental_ground_truth.csv')
-
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--crawl-openalex', action='store_true')
-    parser.add_argument('--num-formulas', type=int, default=10)
-    parser.add_argument('--merge-bandgaps', action='store_true')
-    args = parser.parse_args()
-
-    if args.crawl_openalex:
-        crawl_openalex(num_formulas=args.num_formulas)
-    if args.merge_bandgaps:
-        merge_bandgaps()
-
-
-if __name__ == '__main__':
-    main()
