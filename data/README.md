@@ -8,7 +8,7 @@
 - `manually_collected_data_english.csv`: public CSV export translated to English for easier scripting and versioning.
 - `experimental_bandgap_metadata_curated.csv`: normalized metadata table rebuilt from the manual source workbook.
 - `experimental_bandgap_metadata_cleaned.csv`: stricter review table rebuilt from the manual source workbook, with explicit quality flags and manual-review markers.
-- `final_201_training_samples.csv`: earlier-stage 201-sample subset (used by some ablation steps).
+- `final_training_samples.csv`: earlier-stage sample subset (used by some ablation steps).
 - `ultimate_experimental_ground_truth.csv`: experimental bandgap ground-truth table.
 - `new_extracted_bandgaps.csv`: older record table kept for reference only; it is no longer the primary manual source.
 - `cifs/`: optional CIF files named as `<pretty_formula>.cif` when prepared separately.

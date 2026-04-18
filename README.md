@@ -21,7 +21,7 @@ Create an environment and install core dependencies:
 pip install -r requirements.txt
 ```
 
-Run the main baseline comparison (257-sample dataset):
+Run the main baseline comparison (267-sample dataset):
 
 ```bash
 python -m src.two_step_model --compare
