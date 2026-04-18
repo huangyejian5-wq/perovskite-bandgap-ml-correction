@@ -47,7 +47,7 @@
 - `needs_manual_review`: yes/no flag for records that still require manual inspection
 - `quality_flags`: machine-readable review flags derived from the manual workbook
 
-## Columns (training_set_257.csv)
+## Columns (training_set_267.csv)
 
 Key columns used by the scripts:
 
