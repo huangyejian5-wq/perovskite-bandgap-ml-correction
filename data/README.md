@@ -2,7 +2,7 @@
 
 ## Files
 
-- `training_set_257.csv`: 257-sample curated training set with engineered features.
+- `training_set_267.csv`: 267-sample curated training set with engineered features.
 - `mp_screening_results.csv`: screening results table for Materials Project candidates.
 - `manual_collection_source.xlsx`: primary manually curated source workbook.
 - `manually_collected_data_english.csv`: public CSV export translated to English for easier scripting and versioning.
